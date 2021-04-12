@@ -1,0 +1,25 @@
+plugins {
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.springframework.boot' version '2.4.4' apply(false)
+    id 'io.freefair.lombok' version '5.3.3.3' apply(false)
+}
+
+group = 'com.hotel'
+version = 'master-SNAPSHOT'
+
+subprojects {
+    apply plugin: "io.spring.dependency-management"
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        dependencies {
+            dependency 'org.springframework.boot:spring-boot-starter-web:2.4.4'
+            dependency 'org.codehaus.groovy:groovy:3.0.5'
+            dependency 'org.spockframework:spock-core:2.0-M3-groovy-3.0'
+        }
+    }
+}
+
