@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import com.hotel.usecase.occupancy.ProspectGuest;
 import com.hotel.usecase.occupancy.ProspectGuestRepository;
-import com.hotel.usecase.occupancy.optimizer.OptimizedResult.Status;
+import com.hotel.usecase.occupancy.optimizer.OptimizerResult.Status;
 
 import lombok.AllArgsConstructor;
 
@@ -15,7 +15,7 @@ class OptimizerService {
 
   private final ProspectGuestRepository guestRepository;
 
-  OptimizedResult optimize(OptimizeQuery query) {
+  OptimizerResult optimize(OptimizerQuery query) {
 
     var guests = guestRepository.findAll();
 
@@ -23,7 +23,7 @@ class OptimizerService {
         .map(ProspectGuest::getPriceOffered)
         .filter(t -> t >= 100)
         .sorted(reverseOrder())
-        .limit(query.getPremiumRoomsAvailable())
+        .limit(query.getPremiumRoomsCount())
         .collect(Collectors.toList());
 
     var economyProspects = guests.stream()
@@ -32,9 +32,9 @@ class OptimizerService {
         .sorted(reverseOrder())
         .collect(Collectors.toList());
 
-    var numberOfPremiumRoomsLeft = query.getPremiumRoomsAvailable() - premiumGuests.size();
+    var numberOfPremiumRoomsLeft = query.getPremiumRoomsCount() - premiumGuests.size();
 
-    if (numberOfPremiumRoomsLeft > 0 && (economyProspects.size() > query.getEconomyRoomsAvailable())) {
+    if (numberOfPremiumRoomsLeft > 0 && (economyProspects.size() > query.getEconomyRoomsCount())) {
       var guestsToUpgrade = economyProspects.stream()
           .limit(numberOfPremiumRoomsLeft)
           .collect(Collectors.toList());
@@ -44,7 +44,7 @@ class OptimizerService {
     }
 
     var economyGuests = economyProspects.stream()
-        .limit(query.getEconomyRoomsAvailable())
+        .limit(query.getEconomyRoomsCount())
         .collect(Collectors.toList());
 
     var premiumStatus = new Status(premiumGuests.size(),
@@ -53,6 +53,6 @@ class OptimizerService {
     var economyStatus = new Status(economyGuests.size(),
         economyGuests.stream().mapToInt(Integer::intValue).sum());
 
-    return new OptimizedResult(premiumStatus, economyStatus);
+    return new OptimizerResult(premiumStatus, economyStatus);
   }
 }

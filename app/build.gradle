@@ -1,12 +1,25 @@
 plugins {
+    id 'groovy'
+    id 'application'
     id 'org.springframework.boot'
     id 'io.spring.dependency-management'
-    id 'application'
+    id 'io.freefair.lombok'
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     compile project(':domain')
+    compile project(':data')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.codehaus.groovy:groovy'
+
+    testImplementation('org.spockframework:spock-core')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+test {
+    useJUnitPlatform()
 }
 
 application {

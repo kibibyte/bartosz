@@ -3,7 +3,7 @@ package com.hotel.usecase.occupancy.optimizer;
 import lombok.Value;
 
 @Value
-class OptimizedResult {
+class OptimizerResult {
 
   Status premium;
   Status economy;
@@ -11,7 +11,7 @@ class OptimizedResult {
   @Value
   static class Status {
 
-    Integer roomsOccupied;
-    Integer profit;
+    int roomsOccupiedCount;
+    int profit;
   }
 }
