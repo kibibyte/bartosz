@@ -26,7 +26,7 @@ class OptimizerServiceTest extends Specification {
         new OptimizeQuery(3, 3) || new OptimizedResult(new Status(3, 738), new Status(3, 167))
         new OptimizeQuery(7, 5) || new OptimizedResult(new Status(6, 1054), new Status(4, 189))
         new OptimizeQuery(2, 7) || new OptimizedResult(new Status(2, 583), new Status(4, 189))
-        new OptimizeQuery(7, 1) || new OptimizedResult(new Status(1, 1153), new Status(1, 45))
+        new OptimizeQuery(7, 1) || new OptimizedResult(new Status(7, 1153), new Status(1, 45))
     }
 
     private List<ProspectGuest> getProspects() {
