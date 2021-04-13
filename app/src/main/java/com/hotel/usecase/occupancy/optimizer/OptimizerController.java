@@ -23,7 +23,7 @@ class OptimizerController {
   @PostMapping("/occupancy/optimizer")
   @ResponseStatus(OK)
   OptimizerResult optimize(@RequestBody @Valid OptimizerRequest req) {
-    var query = new OptimizerQuery(req.getPremiumRoomsCount(), req.getEconomyRoomsCount());
+    final var query = new OptimizerQuery(req.getPremiumRoomsCount(), req.getEconomyRoomsCount());
 
     return optimizerService.optimize(query);
   }

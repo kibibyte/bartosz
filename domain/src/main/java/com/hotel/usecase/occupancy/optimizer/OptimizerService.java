@@ -1,8 +1,10 @@
 package com.hotel.usecase.occupancy.optimizer;
 
-import static java.util.Comparator.reverseOrder;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.function.Predicate;
 
 import com.hotel.usecase.occupancy.ProspectGuest;
 import com.hotel.usecase.occupancy.ProspectGuestRepository;
@@ -13,46 +15,64 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 class OptimizerService {
 
+  private final int PREMIUM_ROOM_PRICE = 100;
+
   private final ProspectGuestRepository guestRepository;
 
   OptimizerResult optimize(OptimizerQuery query) {
 
-    var guests = guestRepository.findAll();
+    final var guests = guestRepository.findAll();
+    final var premiumGuests = getGuests(guests, g -> g.getPriceOffered() >= PREMIUM_ROOM_PRICE);
+    final var economyGuests = getGuests(guests, g -> g.getPriceOffered() < PREMIUM_ROOM_PRICE);
 
-    var premiumGuests = guests.stream()
-        .map(ProspectGuest::getPriceOffered)
-        .filter(t -> t >= 100)
-        .sorted(reverseOrder())
-        .limit(query.getPremiumRoomsCount())
-        .collect(Collectors.toList());
+    final int premiumRoomsLeft = getPremiumRoomsLeft(query.getPremiumRoomsCount(), premiumGuests.size());
 
-    var economyProspects = guests.stream()
-        .map(ProspectGuest::getPriceOffered)
-        .filter(t -> t < 100)
-        .sorted(reverseOrder())
-        .collect(Collectors.toList());
-
-    var numberOfPremiumRoomsLeft = query.getPremiumRoomsCount() - premiumGuests.size();
-
-    if (numberOfPremiumRoomsLeft > 0 && (economyProspects.size() > query.getEconomyRoomsCount())) {
-      var guestsToUpgrade = economyProspects.stream()
-          .limit(numberOfPremiumRoomsLeft)
-          .collect(Collectors.toList());
-
-      premiumGuests.addAll(guestsToUpgrade);
-      economyProspects.removeAll(guestsToUpgrade);
+    if (canUpgradeGuests(premiumRoomsLeft, economyGuests.size(), query.getEconomyRoomsCount())) {
+      upgradeGuests(premiumGuests, economyGuests, premiumRoomsLeft);
     }
 
-    var economyGuests = economyProspects.stream()
-        .limit(query.getEconomyRoomsCount())
-        .collect(Collectors.toList());
-
-    var premiumStatus = new Status(premiumGuests.size(),
-        premiumGuests.stream().mapToInt(Integer::intValue).sum());
-
-    var economyStatus = new Status(economyGuests.size(),
-        economyGuests.stream().mapToInt(Integer::intValue).sum());
+    final var premiumStatus = getStatus(premiumGuests, query.getPremiumRoomsCount());
+    final var economyStatus = getStatus(economyGuests, query.getEconomyRoomsCount());
 
     return new OptimizerResult(premiumStatus, economyStatus);
+  }
+
+  private void upgradeGuests(List<ProspectGuest> premiumGuests, List<ProspectGuest> economyGuests,
+      int premiumRoomsLeft) {
+    final var upgradableGuests = getUpgradableGuests(economyGuests, premiumRoomsLeft);
+
+    premiumGuests.addAll(upgradableGuests);
+    economyGuests.removeAll(upgradableGuests);
+  }
+
+  private boolean canUpgradeGuests(int premiumRoomsLeft, int economyGuestsCount, int economyRoomsCount) {
+    return premiumRoomsLeft > 0 && (economyGuestsCount > economyRoomsCount);
+  }
+
+  private Status getStatus(final List<ProspectGuest> guests, int roomsLimit) {
+    final var guestsLimited = guests.stream()
+        .limit(roomsLimit)
+        .collect(toList());
+
+    return new Status(guestsLimited.size(),
+        guestsLimited.stream()
+            .mapToInt(ProspectGuest::getPriceOffered).sum());
+  }
+
+  private List<ProspectGuest> getUpgradableGuests(List<ProspectGuest> economyGuests, int premiumRoomsLeft) {
+    return economyGuests.stream()
+        .limit(premiumRoomsLeft)
+        .collect(toList());
+  }
+
+  private int getPremiumRoomsLeft(int premiumRoomsCount, int premiumGuestsCount) {
+    return premiumRoomsCount - premiumGuestsCount;
+  }
+
+  private List<ProspectGuest> getGuests(List<ProspectGuest> guests, Predicate<ProspectGuest> predicate) {
+    return guests.stream()
+        .filter(predicate)
+        .sorted(comparingInt(ProspectGuest::getPriceOffered).reversed())
+        .collect(toList());
   }
 }
