@@ -8,15 +8,19 @@ import static OptimizerResult.Status
 
 class OptimizerServiceTest extends Specification {
 
+    private OptimizerService optimizerService
+    private ProspectGuestRepository prospectRepository = Mock()
+
+    def setup() {
+        optimizerService = new OptimizerService(prospectRepository)
+    }
+
     def "Should optimize hotel rooms occupancy"() {
         given:
-        ProspectGuestRepository prospectRepository = Mock()
         prospectRepository.findAll() >> getProspects()
 
-        def service = new OptimizerService(prospectRepository)
-
         when:
-        def actualResult = service.optimize(optimizerQuery)
+        def actualResult = optimizerService.optimize(optimizerQuery)
 
         then:
         actualResult == expectedResult
