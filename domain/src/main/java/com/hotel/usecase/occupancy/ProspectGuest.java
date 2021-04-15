@@ -5,6 +5,6 @@ import lombok.Value;
 @Value
 public class ProspectGuest {
 
-  Integer id;
-  Integer priceOffered;
+  int id;
+  int priceOffered;
 }
