@@ -25,7 +25,6 @@ class OptimizerService {
     final var economyGuests = filterGuests(guests, g -> g.getPriceOffered() < PREMIUM_ROOM_PRICE);
     final var premiumRoomsCount = query.getPremiumRoomsCount();
     final int economyRoomsCount = query.getEconomyRoomsCount();
-
     final int premiumRoomsLeft = premiumRoomsCount - premiumGuests.size();
 
     if (canUpgradeGuests(premiumRoomsLeft, economyRoomsCount, economyGuests.size())) {
@@ -39,7 +38,7 @@ class OptimizerService {
   }
 
   private boolean canUpgradeGuests(int premiumRoomsLeft, int economyRoomsCount, int economyGuestsCount) {
-    return premiumRoomsLeft > 0 && (economyGuestsCount > economyRoomsCount);
+    return premiumRoomsLeft > 0 && economyGuestsCount > economyRoomsCount;
   }
 
   private void upgradeGuests(List<ProspectGuest> premiumGuests, List<ProspectGuest> economyGuests,
@@ -66,9 +65,9 @@ class OptimizerService {
         .collect(toList());
   }
 
-  private List<ProspectGuest> filterGuests(List<ProspectGuest> guests, Predicate<ProspectGuest> predicate) {
+  private List<ProspectGuest> filterGuests(List<ProspectGuest> guests, Predicate<ProspectGuest> guestPredicate) {
     return guests.stream()
-        .filter(predicate)
+        .filter(guestPredicate)
         .sorted(comparingInt(ProspectGuest::getPriceOffered).reversed())
         .collect(toList());
   }
